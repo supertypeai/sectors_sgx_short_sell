@@ -1,5 +1,6 @@
 import requests
 import pandas as pd
+import numpy as np
 import re
 from supabase import create_client
 import os
@@ -111,7 +112,7 @@ def fetch_short_data(supabase,today):
 def delete_old_data(supabase,today):
     # Delete more than 1 year data from DB and add to flat file
     sgx_short_df = pd.DataFrame(supabase.table("sgx_short_sell").select("*").lt("date",today - timedelta(365)).execute().data)
-    if a.shape[0] > 0:
+    if sgx_short_df.shape[0] > 0:
         curr_short_df = pd.read_csv("historical_sgx_short_sell_data.csv")
         df_flat_file = pd.concat([curr_short_df,sgx_short_df])
         df_flat_file = df_flat_file.to_csv("historical_sgx_short_sell_data.csv", index=False)
@@ -119,6 +120,10 @@ def delete_old_data(supabase,today):
     supabase.table("sgx_short_sell").delete().lt("date",today - timedelta(365)).execute()
 
 def insert_data_to_db(df_fuzzy,supabase, today):
+    
+    df_fuzzy = df_fuzzy.replace({np.nan: None})
+    df_fuzzy["date"] = df_fuzzy["date"].astype('str')
+    
     # Insert New Data
     for row in range(0,df_fuzzy.shape[0]):
         try:
