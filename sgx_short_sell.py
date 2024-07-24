@@ -6,7 +6,6 @@ from supabase import create_client
 import os
 from dotenv import load_dotenv
 from datetime import datetime, timedelta
-# from fuzzywuzzy import fuzz, process
 import logging
 logging.basicConfig(level=logging.ERROR)
 import argparse
@@ -49,26 +48,6 @@ def extract_txt(text_data):
 
     return df
 
-# def fuzzy_merge(df_1, df_2, key1, key2, threshold=90, limit=1):
-#     """
-#     :param df_1: the left table to join
-#     :param df_2: the right table to join
-#     :param key1: key column of the left table
-#     :param key2: key column of the right table
-#     :param threshold: how close the matches should be to return a match, based on Levenshtein distance
-#     :param limit: the amount of matches that will get returned, these are sorted high to low
-#     :return: dataframe with boths keys and matches
-#     """
-#     s = df_2[key2].tolist()
-    
-#     m = df_1[key1].apply(lambda x: process.extract(x, s, limit=limit))    
-#     df_1['matches'] = m
-    
-#     m2 = df_1['matches'].apply(lambda x: ', '.join([i[0] for i in x if i[1] >= threshold]))
-#     df_1['matches'] = m2
-    
-#     return df_1
-
 def fetch_short_data(supabase, today):
     date = today.strftime("%Y%m%d")
 
@@ -98,15 +77,6 @@ def fetch_short_data(supabase, today):
     df_sgx = pd.DataFrame(df_sgx.data)
 
     data["security"] = data["security"].str.lower()
-    # df_sgx['name'] = df_sgx['name'].str.lower()
-
-    # Using FuzzyWuzzy
-    # df_fuzzy = fuzzy_merge(data, df_sgx, 'security', 'name', threshold=90)
-    # df_fuzzy = df_fuzzy[["security",'date','volume','value','matches']].rename(columns={"matches":"name"})
-    # df_fuzzy = df_fuzzy.merge(df_sgx, on=["name"], how="left").drop(["name"],axis=1)
-    # df_fuzzy = df_fuzzy[["security","symbol",'date','volume','value']].rename(columns={"security":"name"})
-    # df_fuzzy["name"] = df_fuzzy["name"].str.replace('$', '').str.strip()
-    # df_fuzzy = df_fuzzy.drop_duplicates(['name',"volume",'value'])
 
     # Using the fuzz (see other file...)
     data["security"] = data["security"].str.replace('$', '').str.strip()
@@ -147,7 +117,7 @@ def insert_data_to_db(df_fuzzy,supabase, today):
             logging.error(f"Failed to update description for row {row} in date {today}.")
 
 def main():
-    parser = argparse.ArgumentParser(description="Update sg or my data. If no argument is specified, the sg data will be updated.")
+    parser = argparse.ArgumentParser(description="Update short sell date to be fetched")
     parser.add_argument('date', type=str, help='Specify the date of shortsell format "YYYYMMDD", if today specify "today"')
 
     args = parser.parse_args()
