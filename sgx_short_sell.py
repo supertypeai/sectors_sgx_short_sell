@@ -6,11 +6,12 @@ from supabase import create_client
 import os
 from dotenv import load_dotenv
 from datetime import datetime, timedelta
-from fuzzywuzzy import fuzz, process
+# from fuzzywuzzy import fuzz, process
 import logging
 logging.basicConfig(level=logging.ERROR)
 import argparse
 import sys
+from function_thefuzz import preprocess_names, match_names, vote_names, save_names, insert_names_to_df
 
 load_dotenv()
 
@@ -48,27 +49,27 @@ def extract_txt(text_data):
 
     return df
 
-def fuzzy_merge(df_1, df_2, key1, key2, threshold=90, limit=1):
-    """
-    :param df_1: the left table to join
-    :param df_2: the right table to join
-    :param key1: key column of the left table
-    :param key2: key column of the right table
-    :param threshold: how close the matches should be to return a match, based on Levenshtein distance
-    :param limit: the amount of matches that will get returned, these are sorted high to low
-    :return: dataframe with boths keys and matches
-    """
-    s = df_2[key2].tolist()
+# def fuzzy_merge(df_1, df_2, key1, key2, threshold=90, limit=1):
+#     """
+#     :param df_1: the left table to join
+#     :param df_2: the right table to join
+#     :param key1: key column of the left table
+#     :param key2: key column of the right table
+#     :param threshold: how close the matches should be to return a match, based on Levenshtein distance
+#     :param limit: the amount of matches that will get returned, these are sorted high to low
+#     :return: dataframe with boths keys and matches
+#     """
+#     s = df_2[key2].tolist()
     
-    m = df_1[key1].apply(lambda x: process.extract(x, s, limit=limit))    
-    df_1['matches'] = m
+#     m = df_1[key1].apply(lambda x: process.extract(x, s, limit=limit))    
+#     df_1['matches'] = m
     
-    m2 = df_1['matches'].apply(lambda x: ', '.join([i[0] for i in x if i[1] >= threshold]))
-    df_1['matches'] = m2
+#     m2 = df_1['matches'].apply(lambda x: ', '.join([i[0] for i in x if i[1] >= threshold]))
+#     df_1['matches'] = m2
     
-    return df_1
+#     return df_1
 
-def fetch_short_data(supabase,today):
+def fetch_short_data(supabase, today):
     date = today.strftime("%Y%m%d")
 
     if today.month < 10:
@@ -97,17 +98,30 @@ def fetch_short_data(supabase,today):
     df_sgx = pd.DataFrame(df_sgx.data)
 
     data["security"] = data["security"].str.lower()
-    df_sgx['name'] = df_sgx['name'].str.lower()
+    # df_sgx['name'] = df_sgx['name'].str.lower()
 
-    df_fuzzy = fuzzy_merge(data, df_sgx, 'security', 'name', threshold=90)
+    # Using FuzzyWuzzy
+    # df_fuzzy = fuzzy_merge(data, df_sgx, 'security', 'name', threshold=90)
+    # df_fuzzy = df_fuzzy[["security",'date','volume','value','matches']].rename(columns={"matches":"name"})
+    # df_fuzzy = df_fuzzy.merge(df_sgx, on=["name"], how="left").drop(["name"],axis=1)
+    # df_fuzzy = df_fuzzy[["security","symbol",'date','volume','value']].rename(columns={"security":"name"})
+    # df_fuzzy["name"] = df_fuzzy["name"].str.replace('$', '').str.strip()
+    # df_fuzzy = df_fuzzy.drop_duplicates(['name',"volume",'value'])
 
-    df_fuzzy = df_fuzzy[["security",'date','volume','value','matches']].rename(columns={"matches":"name"})
-    df_fuzzy = df_fuzzy.merge(df_sgx, on=["name"], how="left").drop(["name"],axis=1)
-    df_fuzzy = df_fuzzy[["security","symbol",'date','volume','value']].rename(columns={"security":"name"})
-    df_fuzzy["name"] = df_fuzzy["name"].str.replace('$', '').str.strip()
-    df_fuzzy = df_fuzzy.drop_duplicates(['name',"volume",'value'])
+    # Using the fuzz (see other file...)
+    data["security"] = data["security"].str.replace('$', '').str.strip()
+    data['symbol'] = None # Make new column to be inserted
+    data = data[["security",'date','volume','value']].rename(columns={"security":"name"})
+    companies_dict_list = df_sgx.to_dict(orient="records")
 
-    return df_fuzzy
+    unique_value_short_sell = data['name'].unique()
+    cleaned_unique_value_short_sell = preprocess_names(unique_value_short_sell)
+    list_of_dictionaries = match_names(cleaned_unique_value_short_sell, unique_value_short_sell, companies_dict_list)
+    final_data, still_null_data = vote_names(list_of_dictionaries)
+    # save_names(final_data, still_null_data) # Only if needed
+    df_final = insert_names_to_df(final_data, data)
+
+    return df_final
 
 def delete_old_data(supabase,today):
     # Delete more than 1 year data from DB and add to flat file
@@ -146,9 +160,9 @@ def main():
 
     supabase = create_client(os.getenv("SUPABASE_URL"),os.getenv("SUPABASE_KEY"))
     
-    df_fuzzy = fetch_short_data(supabase,today)
+    df_final = fetch_short_data(supabase,today)
     delete_old_data(supabase,today)
-    insert_data_to_db(df_fuzzy,supabase, today)
+    insert_data_to_db(df_final, supabase, today)
 
 if __name__ == "__main__":
     main()
