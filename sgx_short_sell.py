@@ -89,7 +89,6 @@ def fetch_short_data(supabase, today):
 
     for i in data.columns:
         if type(data[i]) == "str":
-            print(data[i])
             data[i] = data[i].str.replace('$', '').str.strip()
 
     data.columns = ['security','volume','currency','value','date']
