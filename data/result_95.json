@@ -39,6 +39,11 @@
     "name": "Advanced Systems Automation Ltd",
     "value": 300
   },
+  "aem sgd": {
+    "symbol": "AWX",
+    "name": "Aem Holdings Ltd",
+    "value": 300
+  },
   "af global": {
     "symbol": "L38",
     "name": "AF Global",
@@ -62,7 +67,7 @@
   "anchun intl": {
     "symbol": "BTX",
     "name": "Anchun International Holdings Ltd",
-    "value": 95
+    "value": 200
   },
   "ap oil": {
     "symbol": "5AU",
@@ -82,6 +87,11 @@
   "asian micro": {
     "symbol": "585",
     "name": "Asian Micro",
+    "value": 400
+  },
+  "asian pay tv tr": {
+    "symbol": "S7OU",
+    "name": "Asian Pay Television Trust",
     "value": 400
   },
   "asiaphos": {
@@ -127,7 +137,7 @@
   "aztech gbl": {
     "symbol": "8AZ",
     "name": "Aztech Global",
-    "value": 190
+    "value": 400
   },
   "bacui tech": {
     "symbol": "YYB",
@@ -144,11 +154,6 @@
     "name": "Ban Leong Technologies Ltd",
     "value": 300
   },
-  "banyan tree": {
-    "symbol": "B58",
-    "name": "Banyan Tree Holdings Ltd",
-    "value": 200
-  },
   "bbr": {
     "symbol": "KJ5",
     "name": "BBR Holdings S Ltd",
@@ -163,6 +168,11 @@
     "symbol": "CGN",
     "name": "Best World International",
     "value": 200
+  },
+  "beverlyjcg": {
+    "symbol": "9QX",
+    "name": "Beverly JCG Ltd",
+    "value": 300
   },
   "bhg retail reit": {
     "symbol": "BMGU",
@@ -209,10 +219,45 @@
     "name": "Capallianz Holdings",
     "value": 300
   },
+  "capitalandinvest": {
+    "symbol": "9CI",
+    "name": "Capitaland Investment",
+    "value": 400
+  },
+  "capland ascendas reit": {
+    "symbol": "A17U",
+    "name": "CapitaLand Ascendas",
+    "value": 300
+  },
+  "capland ascott t": {
+    "symbol": "HMN",
+    "name": "CapitaLand Ascott Trust",
+    "value": 200
+  },
+  "capland china t": {
+    "symbol": "AU8U",
+    "name": "CapitaLand China Trust",
+    "value": 200
+  },
+  "capland india t": {
+    "symbol": "CY6U",
+    "name": "CapitaLand India Trust",
+    "value": 200
+  },
+  "capland intcom t": {
+    "symbol": "C38U",
+    "name": "CapitaLand Integrated Commercial Trust",
+    "value": 297
+  },
   "casa": {
     "symbol": "C04",
     "name": "Casa Holdings Ltd",
     "value": 300
+  },
+  "cdl htrust": {
+    "symbol": "J85",
+    "name": "CDL Hospitality Trusts",
+    "value": 396
   },
   "cdw": {
     "symbol": "BXE",
@@ -239,6 +284,16 @@
     "name": "China Everbright Water Ltd",
     "value": 300
   },
+  "chinakundatech": {
+    "symbol": "GU5",
+    "name": "China Kunda Technology Holdings Ltd",
+    "value": 100
+  },
+  "chinasunsine": {
+    "symbol": "QES",
+    "name": "China Sunsine Chemical Holdings Ltd",
+    "value": 200
+  },
   "choo chiang": {
     "symbol": "42E",
     "name": "Choo Chiang Holdings Ltd",
@@ -247,6 +302,11 @@
   "chuan hup": {
     "symbol": "C33",
     "name": "Chuan Hup Holdings Ltd",
+    "value": 200
+  },
+  "citydev": {
+    "symbol": "C70",
+    "name": "City Developments Ltd Pref",
     "value": 200
   },
   "civmec": {
@@ -289,6 +349,11 @@
     "name": "CSE Global Ltd",
     "value": 300
   },
+  "daiwa hse log tr": {
+    "symbol": "DHLU",
+    "name": "Daiwa House Logistics Trust Unt",
+    "value": 300
+  },
   "dbs": {
     "symbol": "D05",
     "name": "DBS",
@@ -304,6 +369,11 @@
     "name": "Delfi",
     "value": 400
   },
+  "digicore reit usd": {
+    "symbol": "DCRU",
+    "name": "Digital Core REIT Unt",
+    "value": 190
+  },
   "disa": {
     "symbol": "532",
     "name": "DISA",
@@ -317,7 +387,7 @@
   "duty free intl": {
     "symbol": "5SO",
     "name": "Duty Free International Ltd",
-    "value": 192
+    "value": 300
   },
   "dyna-mac": {
     "symbol": "NO4",
@@ -352,11 +422,16 @@
   "eurosports gbl": {
     "symbol": "5G1",
     "name": "EuroSports Global Ltd",
-    "value": 192
+    "value": 300
   },
   "f & n": {
     "symbol": "F99",
     "name": "F & N",
+    "value": 400
+  },
+  "far east htrust": {
+    "symbol": "Q5T",
+    "name": "Far East Hospitality Trust",
     "value": 400
   },
   "far east orchard": {
@@ -394,10 +469,15 @@
     "name": "Fortress Minerals",
     "value": 194
   },
-  "frasers htrust": {
+  "frasers cpt tr": {
     "symbol": "J69U",
     "name": "Frasers Centrepoint Trust",
-    "value": 96
+    "value": 400
+  },
+  "frasers htrust": {
+    "symbol": "ACV",
+    "name": "Frasers Hospitality Trust",
+    "value": 400
   },
   "frasers property": {
     "symbol": "TQ5",
@@ -409,10 +489,25 @@
     "name": "Frencken Group Ltd",
     "value": 300
   },
+  "fsl trust": {
+    "symbol": "D8DU",
+    "name": "First Ship Lease Trust",
+    "value": 200
+  },
   "fu yu": {
     "symbol": "F13",
     "name": "Fu Yu Corporation Ltd",
     "value": 200
+  },
+  "g invacom": {
+    "symbol": "QS9",
+    "name": "Global Invacom Group Ltd",
+    "value": 200
+  },
+  "g invacom^": {
+    "symbol": "QS9",
+    "name": "Global Invacom Group Ltd",
+    "value": 197
   },
   "gallant venture": {
     "symbol": "5IG",
@@ -439,6 +534,11 @@
     "name": "GKE Corporation Ltd",
     "value": 300
   },
+  "golden agri-res": {
+    "symbol": "E5H",
+    "name": "GoldenAgr",
+    "value": 400
+  },
   "gp industries": {
     "symbol": "G20",
     "name": "GP Industries Ltd",
@@ -463,6 +563,11 @@
     "symbol": "Y06",
     "name": "Green Build Technology Ltd",
     "value": 296
+  },
+  "gs hldg": {
+    "symbol": "43A",
+    "name": "GS Holdings",
+    "value": 390
   },
   "gsh": {
     "symbol": "BDX",
@@ -552,7 +657,7 @@
   "hong leong fin": {
     "symbol": "S41",
     "name": "Hong Leong Finance Ltd",
-    "value": 100
+    "value": 300
   },
   "hor kew": {
     "symbol": "BBP",
@@ -573,6 +678,21 @@
     "symbol": "BLS",
     "name": "Hotung Investment Holdings Ltd",
     "value": 200
+  },
+  "hph trust sgd": {
+    "symbol": "NS8U",
+    "name": "Hutchison Port Holdings Trust",
+    "value": 390
+  },
+  "hph trust usd": {
+    "symbol": "NS8U",
+    "name": "Hutchison Port Holdings Trust",
+    "value": 200
+  },
+  "hpl": {
+    "symbol": "H15",
+    "name": "Hotel Properties Ltd",
+    "value": 400
   },
   "hrnetgroup": {
     "symbol": "CHZ",
@@ -627,7 +747,7 @@
   "ireit global sgd": {
     "symbol": "UD1U",
     "name": "IREIT Global",
-    "value": 300
+    "value": 400
   },
   "isdn": {
     "symbol": "I07",
@@ -679,6 +799,11 @@
     "name": "Jiutian Chemical Group Ltd",
     "value": 200
   },
+  "jmh usd": {
+    "symbol": "J36",
+    "name": "Jardine Matheson",
+    "value": 300
+  },
   "jubilee": {
     "symbol": "NHD",
     "name": "Jubilee Industries Holdings Ltd",
@@ -693,6 +818,16 @@
     "symbol": "5TT",
     "name": "Keong Hong Holdings Ltd",
     "value": 300
+  },
+  "kep infra tr": {
+    "symbol": "A7RU",
+    "name": "Keppel Infra REIT",
+    "value": 300
+  },
+  "keppacoakreitusd": {
+    "symbol": "CMOU",
+    "name": "Keppel Pacific Oak",
+    "value": 100
   },
   "keppel": {
     "symbol": "A7RU",
@@ -799,10 +934,35 @@
     "name": "LY Corporation",
     "value": 100
   },
+  "manulifereit usd": {
+    "symbol": "BTOU",
+    "name": "Manulife US RE",
+    "value": 400
+  },
+  "mapletree ind tr": {
+    "symbol": "ME8U",
+    "name": "Mapletree Industrial Trust",
+    "value": 400
+  },
+  "mapletree log tr": {
+    "symbol": "M44U",
+    "name": "Mapletree Logistics Trust",
+    "value": 400
+  },
+  "mapletree panasia com tr": {
+    "symbol": "N2IU",
+    "name": "Mapletree Commercial Trust",
+    "value": 100
+  },
+  "marcopolo marine": {
+    "symbol": "5LY",
+    "name": "Marco Polo Marine Ltd",
+    "value": 300
+  },
   "matex intl": {
     "symbol": "M15",
     "name": "Matex International",
-    "value": 95
+    "value": 400
   },
   "medinex": {
     "symbol": "OTX",
@@ -812,7 +972,12 @@
   "medtecs intl": {
     "symbol": "546",
     "name": "Medtecs International Corporation",
-    "value": 96
+    "value": 300
+  },
+  "memiontec hldgs": {
+    "symbol": "TWL",
+    "name": "Memiontec Holdings",
+    "value": 400
   },
   "mencast": {
     "symbol": "5NF",
@@ -832,7 +997,7 @@
   "mewah intl": {
     "symbol": "MV4",
     "name": "Mewah International Inc",
-    "value": 95
+    "value": 300
   },
   "micro-mechanics": {
     "symbol": "5DD",
@@ -852,7 +1017,7 @@
   "moneymax fin": {
     "symbol": "5WJ",
     "name": "Moneymax Financial Services Ltd",
-    "value": 100
+    "value": 97
   },
   "mooreast": {
     "symbol": "1V3",
@@ -883,6 +1048,11 @@
     "symbol": "G0I",
     "name": "Nam Lee Pressed Metal Industries",
     "value": 200
+  },
+  "namcheong": {
+    "symbol": "1MZ",
+    "name": "Nam Cheong",
+    "value": 400
   },
   "nanofilm": {
     "symbol": "MZH",
@@ -959,6 +1129,11 @@
     "name": "OUE Healthcare",
     "value": 300
   },
+  "oue com reit": {
+    "symbol": "TS0U",
+    "name": "OUE Commercial",
+    "value": 300
+  },
   "oue healthcare": {
     "symbol": "5WA",
     "name": "OUE Healthcare",
@@ -984,9 +1159,19 @@
     "name": "Pacific Century Regional Develop",
     "value": 200
   },
+  "pacificradiance": {
+    "symbol": "RXS",
+    "name": "Pacific Radiance Ltd",
+    "value": 300
+  },
   "pan hong": {
     "symbol": "P36",
     "name": "Pan Hong Group Holdings",
+    "value": 300
+  },
+  "panunited": {
+    "symbol": "P52",
+    "name": "Pan United Corporation Ltd",
     "value": 300
   },
   "paragonreit": {
@@ -998,6 +1183,11 @@
     "symbol": "O9E",
     "name": "Parkson Retail Asia Ltd",
     "value": 297
+  },
+  "parkwaylife reit": {
+    "symbol": "C2PU",
+    "name": "Parkway Life REIT",
+    "value": 400
   },
   "pavillon": {
     "symbol": "596",
@@ -1069,6 +1259,16 @@
     "name": "RE&S",
     "value": 300
   },
+  "resourcesgbl": {
+    "symbol": "V7R",
+    "name": "Resources Global",
+    "value": 400
+  },
+  "rex intl": {
+    "symbol": "5WH",
+    "name": "Rex International Holding Ltd",
+    "value": 200
+  },
   "rh petrogas": {
     "symbol": "T13",
     "name": "RH Petrogas Ltd",
@@ -1093,6 +1293,11 @@
     "symbol": "580",
     "name": "Santak Holdings",
     "value": 96
+  },
+  "samuderashipping": {
+    "symbol": "S56",
+    "name": "Samudera Shipping Line Ltd",
+    "value": 300
   },
   "samurai 2k": {
     "symbol": "Y8E",
@@ -1119,20 +1324,30 @@
     "name": "SATS Ltd",
     "value": 300
   },
-  "sbs transit": {
-    "symbol": "S61",
-    "name": "SBS Transit Ltd",
-    "value": 300
-  },
   "seatrium": {
     "symbol": "5E2",
     "name": "Seatrium Limited",
     "value": 300
   },
+  "seatrium ltd": {
+    "symbol": "5E2",
+    "name": "Seatrium Limited",
+    "value": 400
+  },
+  "sembcorp ind": {
+    "symbol": "U96",
+    "name": "Semb Corp",
+    "value": 200
+  },
   "serial system": {
     "symbol": "S69",
     "name": "Serial System Ltd",
     "value": 300
+  },
+  "sgx": {
+    "symbol": "S68",
+    "name": "Singapore Exchange",
+    "value": 400
   },
   "sheng siong": {
     "symbol": "OV8",
@@ -1145,8 +1360,8 @@
     "value": 300
   },
   "sia": {
-    "symbol": "5CR",
-    "name": "Asiatic Group Holdings Ltd",
+    "symbol": "BAZ",
+    "name": "Lion Asiapac Ltd",
     "value": 200
   },
   "sia engineering": {
@@ -1169,10 +1384,20 @@
     "name": "Sim Leisure",
     "value": 300
   },
+  "sin heng mach": {
+    "symbol": "BKA",
+    "name": "Sin Heng Heavy Machinery Ltd",
+    "value": 200
+  },
   "sinarmas land": {
     "symbol": "A26",
     "name": "Sinarmas Land Ltd",
     "value": 200
+  },
+  "sing inv & fin": {
+    "symbol": "S35",
+    "name": "Sing Investments & Finance Ltd",
+    "value": 96
   },
   "sing paincare": {
     "symbol": "1G1",
@@ -1183,6 +1408,21 @@
     "symbol": "BLU",
     "name": "GRP",
     "value": 200
+  },
+  "singholdings": {
+    "symbol": "T24",
+    "name": "Tuan Sing Holdings Ltd",
+    "value": 200
+  },
+  "singpost": {
+    "symbol": "S08",
+    "name": "Singapore Post Ltd",
+    "value": 300
+  },
+  "singshipping": {
+    "symbol": "S19",
+    "name": "Singapore Shipping Corporation Ltd",
+    "value": 300
   },
   "singtel": {
     "symbol": "Z74",
@@ -1214,10 +1454,10 @@
     "name": "Pan Hong Group Holdings",
     "value": 96
   },
-  "sri trang agro": {
-    "symbol": "NC2",
-    "name": "Sri Trang Agro Industry F",
-    "value": 200
+  "southernalliance": {
+    "symbol": "QNS",
+    "name": "Southern Alliance",
+    "value": 400
   },
   "st engineering": {
     "symbol": "S63",
@@ -1239,6 +1479,11 @@
     "name": "Stamford Tyres Corporation Ltd",
     "value": 300
   },
+  "starhillgbl reit": {
+    "symbol": "P40U",
+    "name": "Starhill Global REIT",
+    "value": 400
+  },
   "starhub": {
     "symbol": "CC3",
     "name": "StarHub",
@@ -1249,10 +1494,10 @@
     "name": "Straco Corporation Ltd",
     "value": 300
   },
-  "straits trading": {
-    "symbol": "S20",
-    "name": "Straits Trading Company Ltd",
-    "value": 300
+  "sunmoonfood": {
+    "symbol": "AAJ",
+    "name": "SunMoon Food Company Ltd",
+    "value": 200
   },
   "sunpower": {
     "symbol": "5GD",
@@ -1284,6 +1529,16 @@
     "name": "Talkmed Group Ltd",
     "value": 300
   },
+  "tat seng pkg": {
+    "symbol": "T12",
+    "name": "Tat Seng Packaging Group Ltd",
+    "value": 300
+  },
+  "thaibev": {
+    "symbol": "Y92",
+    "name": "Thai Beverage",
+    "value": 400
+  },
   "thakral": {
     "symbol": "AWI",
     "name": "Thakral Corporation Ltd",
@@ -1308,6 +1563,11 @@
     "symbol": "BQM",
     "name": "Tiong Woon Corporation Holding Ltd",
     "value": 300
+  },
+  "tj darentang usd": {
+    "symbol": "T14",
+    "name": "Tianjin Zhongxin Pharma Group",
+    "value": 200
   },
   "top glove": {
     "symbol": "BVA",
@@ -1339,14 +1599,14 @@
     "name": "Tye Soon Ltd",
     "value": 300
   },
+  "ughealthcare": {
+    "symbol": "8K7",
+    "name": "UG Healthcare Corporation Ltd",
+    "value": 200
+  },
   "ums": {
     "symbol": "558",
     "name": "UMS Holdings Ltd",
-    "value": 300
-  },
-  "uni-asia grp": {
-    "symbol": "BLU",
-    "name": "GRP",
     "value": 300
   },
   "union gas": {
@@ -1374,10 +1634,20 @@
     "name": "UOB",
     "value": 300
   },
+  "uoi": {
+    "symbol": "U13",
+    "name": "United Overseas Insurance",
+    "value": 400
+  },
   "uol": {
     "symbol": "U14",
     "name": "UOL Group",
     "value": 300
+  },
+  "utdhampshreitusd": {
+    "symbol": "ODBU",
+    "name": "United Hampshire",
+    "value": 100
   },
   "v2y corp": {
     "symbol": "V2Y",
@@ -1400,8 +1670,8 @@
     "value": 300
   },
   "venture": {
-    "symbol": "5IG",
-    "name": "Gallant Venture Ltd",
+    "symbol": "V03",
+    "name": "Venture Corporation Ltd",
     "value": 300
   },
   "vibrant group": {
@@ -1417,7 +1687,7 @@
   "vicplas intl": {
     "symbol": "569",
     "name": "Vicplas International",
-    "value": 96
+    "value": 400
   },
   "wee hur": {
     "symbol": "E3B",
@@ -1444,6 +1714,11 @@
     "name": "Wing Tai Holdings Ltd",
     "value": 300
   },
+  "winkingstudios": {
+    "symbol": "WKS",
+    "name": "Winking Studios",
+    "value": 194
+  },
   "world precision": {
     "symbol": "B49",
     "name": "World Precision Machinery Ltd",
@@ -1469,6 +1744,11 @@
     "name": "Yeo Hiap Seng Ltd",
     "value": 200
   },
+  "yhi intl": {
+    "symbol": "BPF",
+    "name": "YHI International Ltd",
+    "value": 200
+  },
   "yoma strategic": {
     "symbol": "Z59",
     "name": "Yoma Strategic Holdings Ltd",
@@ -1478,6 +1758,16 @@
     "symbol": "BKX",
     "name": "Yongmao Holdings Ltd",
     "value": 300
+  },
+  "yzj fin hldg": {
+    "symbol": "YF8",
+    "name": "Yangzijiang Financial Holding",
+    "value": 400
+  },
+  "yzj shipbldg sgd": {
+    "symbol": "BS6",
+    "name": "Yangzijiang Shipbuilding",
+    "value": 400
   },
   "zheneng jinjiang": {
     "symbol": "BWM",
