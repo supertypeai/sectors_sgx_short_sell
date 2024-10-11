@@ -7,6 +7,7 @@ import os
 from dotenv import load_dotenv
 from datetime import datetime, timedelta
 import logging
+from imp import reload
 logging.basicConfig(level=logging.ERROR)
 import argparse
 import sys
@@ -134,6 +135,20 @@ def main():
     delete_old_data(supabase,today)
     insert_data_to_db(df_final, supabase, today)
 
+def initiate_logging(LOG_FILENAME):
+    reload(logging)
+
+    formatLOG = '%(asctime)s - %(levelname)s: %(message)s'
+    logging.basicConfig(filename=LOG_FILENAME,level=logging.INFO, format=formatLOG)
+    logging.info('Program started')
+
 if __name__ == "__main__":
+    LOG_FILENAME = 'scraper.log'
+    initiate_logging(LOG_FILENAME)
+
     main()
+
+    logging.info(f"Finish scrape sgx short sell data")
+
+
 
