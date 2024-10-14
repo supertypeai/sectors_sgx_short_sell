@@ -54,6 +54,9 @@ def fetch_short_data(supabase, today):
 
     if today.month < 10:
         month = f"0{today.month}"
+    else:
+        month = today.month
+        
     try:
         url = f'https://api2.sgx.com/sites/default/files/reports/short-sell/{today.year}/{month}/website_DailyShortSell{date}1815.txt'
         short_url = requests.get(url)
