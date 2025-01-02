@@ -101,9 +101,13 @@ def delete_old_data(supabase,today):
     # Delete more than 1 year data from DB and add to flat file
     sgx_short_df = pd.DataFrame(supabase.table("sgx_short_sell").select("*").lt("date",today - timedelta(365)).execute().data)
     if sgx_short_df.shape[0] > 0:
-        curr_short_df = pd.read_csv("historical_sgx_short_sell_data.csv")
-        df_flat_file = pd.concat([curr_short_df,sgx_short_df])
+        try:
+            curr_short_df = pd.read_csv("historical_sgx_short_sell_data.csv")
+            df_flat_file = pd.concat([curr_short_df,sgx_short_df])
+        except:
+            df_flat_file = sgx_short_df
         df_flat_file = df_flat_file.to_csv("historical_sgx_short_sell_data.csv", index=False)
+        
 
     supabase.table("sgx_short_sell").delete().lt("date",today - timedelta(365)).execute()
 
