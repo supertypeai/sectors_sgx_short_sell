@@ -236,3 +236,5 @@
 2025-03-12 14:11:21,781 - INFO: Program started
 2025-03-12 14:11:46,462 - ERROR: Failed to update description for row 42 in date 2025-03-12 14:11:21.781902.
 2025-03-12 14:12:04,106 - INFO: Finish scrape sgx short sell data
+2025-03-13 14:11:04,614 - INFO: Program started
+2025-03-13 14:11:51,302 - INFO: Finish scrape sgx short sell data
