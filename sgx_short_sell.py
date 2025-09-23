@@ -77,7 +77,7 @@ def fetch_short_data(supabase, today):
     data.columns = ['security','volume','currency','value','date']
 
     # Get Symbol for each Company
-    df_sgx = supabase.table("sgx_companies").select("symbol","name").execute()
+    df_sgx = supabase.table("sgx_companies").select("symbol","name","market_cap").execute()
     df_sgx = pd.DataFrame(df_sgx.data)
 
     data["security"] = data["security"].str.lower()
@@ -86,7 +86,7 @@ def fetch_short_data(supabase, today):
     data["security"] = data["security"].str.replace('$', '').str.strip()
     data['symbol'] = None # Make new column to be inserted
     data = data[["security",'date','volume','value']].rename(columns={"security":"name"})
-    companies_dict_list = df_sgx.to_dict(orient="records")
+    companies_dict_list = df_sgx[['symbol','name']].to_dict(orient="records")
 
     unique_value_short_sell = data['name'].unique()
     cleaned_unique_value_short_sell = preprocess_names(unique_value_short_sell)
@@ -95,21 +95,26 @@ def fetch_short_data(supabase, today):
     # save_names(final_data, still_null_data) # Only if needed
     df_final = insert_names_to_df(final_data, data)
 
-    return df_final
+    df_top_sgx = df_sgx.sort_values("market_cap", ascending=False).head(50)
+    df_csv = df_final[~df_final.symbol.isin(df_top_sgx.symbol.unique())]
+    df_final = df_final[df_final.symbol.isin(df_top_sgx.symbol.unique())]
+    return df_final, df_csv
 
-def delete_old_data(supabase,today):
+def delete_old_data(supabase,today,df_csv):
     # Delete more than 1 year data from DB and add to flat file
-    sgx_short_df = pd.DataFrame(supabase.table("sgx_short_sell").select("*").lt("date",today - timedelta(365)).execute().data)
+    sgx_short_df = pd.DataFrame(supabase.table("sgx_short_sell").select("*").lt("date",today - timedelta(365*2)).execute().data)
+    sgx_short_df = pd.concat([sgx_short_df,df_csv])
     if sgx_short_df.shape[0] > 0:
         try:
             curr_short_df = pd.read_csv("historical_sgx_short_sell_data.csv")
             df_flat_file = pd.concat([curr_short_df,sgx_short_df])
         except:
             df_flat_file = sgx_short_df
+            print("no prior csv file")
         df_flat_file = df_flat_file.to_csv("historical_sgx_short_sell_data.csv", index=False)
         
 
-    supabase.table("sgx_short_sell").delete().lt("date",today - timedelta(365)).execute()
+    supabase.table("sgx_short_sell").delete().lt("date",today - timedelta(365*2)).execute()
 
 def insert_data_to_db(df_fuzzy,supabase, today):
     
@@ -129,7 +134,7 @@ def main():
     parser.add_argument('date', type=str, help='Specify the date of shortsell format "YYYYMMDD", if today specify "today"')
 
     args = parser.parse_args()
-
+    
     if args.date == "today":
         # Fetch Daily Short Sell Data
         today = datetime.today()
@@ -138,9 +143,11 @@ def main():
 
     supabase = create_client(os.getenv("SUPABASE_URL"),os.getenv("SUPABASE_KEY"))
     
-    df_final = fetch_short_data(supabase,today)
-    delete_old_data(supabase,today)
-    insert_data_to_db(df_final, supabase, today)
+    df_final,df_csv = fetch_short_data(supabase,today)
+
+    print(df_final)
+    delete_old_data(supabase,today,df_csv)
+    # insert_data_to_db(df_final, supabase, today)
 
 def initiate_logging(LOG_FILENAME):
     reload(logging)
