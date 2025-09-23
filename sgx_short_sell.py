@@ -147,7 +147,7 @@ def main():
 
     print(df_final)
     delete_old_data(supabase,today,df_csv)
-    # insert_data_to_db(df_final, supabase, today)
+    insert_data_to_db(df_final, supabase, today)
 
 def initiate_logging(LOG_FILENAME):
     reload(logging)
