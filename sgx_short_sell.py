@@ -95,7 +95,7 @@ def fetch_short_data(supabase, today):
     # save_names(final_data, still_null_data) # Only if needed
     df_final = insert_names_to_df(final_data, data)
 
-    df_top_sgx = df_sgx.sort_values("market_cap", ascending=False).head(50)
+    df_top_sgx = df_sgx.sort_values("market_cap", ascending=False).head(70)
     df_csv = df_final[~df_final.symbol.isin(df_top_sgx.symbol.unique())]
     df_final = df_final[df_final.symbol.isin(df_top_sgx.symbol.unique())]
     return df_final, df_csv
