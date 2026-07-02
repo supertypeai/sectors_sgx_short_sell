@@ -77,8 +77,26 @@ def fetch_short_data(supabase, today):
     data.columns = ['security','volume','currency','value','date']
 
     # Get Symbol for each Company
-    df_sgx = supabase.table("sgx_companies").select("symbol","name","market_cap").execute()
+    df_sgx = supabase.table("sgx_companies").select("symbol","name").execute()
     df_sgx = pd.DataFrame(df_sgx.data)
+
+    latest_date = (
+    supabase.table("sgx_daily_data")
+    .select("date")
+    .order("date", desc=True)
+    .limit(1)
+    .execute()
+    .data[0]["date"]
+    )
+    
+    df_sgx_daily = (
+        supabase.table("sgx_daily_data")
+        .select("symbol", "market_cap")
+        .eq("date", latest_date)
+        .execute()
+    )
+    df_sgx_daily = pd.DataFrame(df_sgx_daily.data)
+    df_sgx_daily = df_sgx_daily.dropna()
 
     data["security"] = data["security"].str.lower()
 
@@ -95,7 +113,7 @@ def fetch_short_data(supabase, today):
     # save_names(final_data, still_null_data) # Only if needed
     df_final = insert_names_to_df(final_data, data)
 
-    df_top_sgx = df_sgx.sort_values("market_cap", ascending=False).head(70)
+    df_top_sgx = df_sgx_daily.sort_values("market_cap", ascending=False).head(70)
     df_csv = df_final[~df_final.symbol.isin(df_top_sgx.symbol.unique())]
     df_final = df_final[df_final.symbol.isin(df_top_sgx.symbol.unique())]
     return df_final, df_csv
