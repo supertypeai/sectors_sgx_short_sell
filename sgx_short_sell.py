@@ -17,7 +17,7 @@ load_dotenv()
 
 def extract_txt(text_data):
     
-    # Split the content into lines
+    # Split the content into linesp
     lines = text_data.split('\r\n')
 
     # Extract the header
@@ -80,23 +80,24 @@ def fetch_short_data(supabase, today):
     df_sgx = supabase.table("sgx_companies").select("symbol","name").execute()
     df_sgx = pd.DataFrame(df_sgx.data)
 
-    latest_date = (
-    supabase.table("sgx_daily_data")
-    .select("date")
-    .order("date", desc=True)
-    .limit(1)
-    .execute()
-    .data[0]["date"]
-    )
-    
-    df_sgx_daily = (
-        supabase.table("sgx_daily_data")
-        .select("symbol", "market_cap")
-        .eq("date", latest_date)
-        .execute()
-    )
-    df_sgx_daily = pd.DataFrame(df_sgx_daily.data)
-    df_sgx_daily = df_sgx_daily.dropna()
+    # Only needed for the top-70-by-mcap cap
+    # latest_date = (
+    # supabase.table("sgx_daily_data")
+    # .select("date")
+    # .order("date", desc=True)
+    # .limit(1)
+    # .execute()
+    # .data[0]["date"]
+    # )
+    #
+    # df_sgx_daily = (
+    #     supabase.table("sgx_daily_data")
+    #     .select("symbol", "market_cap")
+    #     .eq("date", latest_date)
+    #     .execute()
+    # )
+    # df_sgx_daily = pd.DataFrame(df_sgx_daily.data)
+    # df_sgx_daily = df_sgx_daily.dropna()
 
     data["security"] = data["security"].str.lower()
 
@@ -113,15 +114,15 @@ def fetch_short_data(supabase, today):
     # save_names(final_data, still_null_data) # Only if needed
     df_final = insert_names_to_df(final_data, data)
 
-    df_top_sgx = df_sgx_daily.sort_values("market_cap", ascending=False).head(70)
-    df_csv = df_final[~df_final.symbol.isin(df_top_sgx.symbol.unique())]
-    df_final = df_final[df_final.symbol.isin(df_top_sgx.symbol.unique())]
-    return df_final, df_csv
+    # df_top_sgx = df_sgx_daily.sort_values("market_cap", ascending=False).head(70)
+    # df_csv = df_final[~df_final.symbol.isin(df_top_sgx.symbol.unique())]
+    # df_final = df_final[df_final.symbol.isin(df_top_sgx.symbol.unique())]
+    # return df_final, df_csv
+    return df_final
 
-def delete_old_data(supabase,today,df_csv):
-    # Delete more than 1 year data from DB and add to flat file
+def delete_old_data(supabase,today):
+    # Delete more than 2 year data from DB and add to flat file
     sgx_short_df = pd.DataFrame(supabase.table("sgx_short_sell").select("*").lt("date",today - timedelta(365*2)).execute().data)
-    sgx_short_df = pd.concat([sgx_short_df,df_csv])
     if sgx_short_df.shape[0] > 0:
         try:
             curr_short_df = pd.read_csv("historical_sgx_short_sell_data.csv")
@@ -161,10 +162,11 @@ def main():
 
     supabase = create_client(os.getenv("SUPABASE_URL"),os.getenv("SUPABASE_KEY"))
     
-    df_final,df_csv = fetch_short_data(supabase,today)
+    # df_final,df_csv = fetch_short_data(supabase,today)
+    df_final = fetch_short_data(supabase,today)
 
     print(df_final)
-    delete_old_data(supabase,today,df_csv)
+    delete_old_data(supabase,today)
     insert_data_to_db(df_final, supabase, today)
 
 def initiate_logging(LOG_FILENAME):
