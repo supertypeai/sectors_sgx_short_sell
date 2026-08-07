@@ -1060,3 +1060,5 @@
 2026-08-06 23:56:49,246 - ERROR: Failed to update description for row 120 in date 2026-08-06 23:56:40.698215.
 2026-08-06 23:56:49,316 - ERROR: Failed to update description for row 121 in date 2026-08-06 23:56:40.698215.
 2026-08-06 23:56:49,317 - INFO: Finish scrape sgx short sell data
+2026-08-07 14:44:51,275 - INFO: Program started
+2026-08-07 14:45:34,164 - INFO: Finish scrape sgx short sell data
