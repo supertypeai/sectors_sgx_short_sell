@@ -15,6 +15,19 @@ from function_thefuzz import preprocess_names, match_names, vote_names, save_nam
 
 load_dotenv()
 
+# SGX symbols are stored with a ".SI" suffix (e.g. "A17U.SI")
+SYMBOL_SUFFIX = ".SI"
+
+def add_symbol_suffix(symbols):
+    """Append ".SI" to SGX symbols. Idempotent: symbols that already carry the
+    suffix (or are null) are left untouched."""
+    symbols = symbols.astype("object").where(symbols.notna(), None)
+    return symbols.map(
+        lambda symbol: symbol
+        if symbol is None or str(symbol).strip().upper().endswith(SYMBOL_SUFFIX)
+        else f"{str(symbol).strip()}{SYMBOL_SUFFIX}"
+    )
+
 def extract_txt(text_data):
     
     # Split the content into linesp
@@ -79,6 +92,7 @@ def fetch_short_data(supabase, today):
     # Get Symbol for each Company
     df_sgx = supabase.table("sgx_companies").select("symbol","name").execute()
     df_sgx = pd.DataFrame(df_sgx.data)
+    df_sgx["symbol"] = add_symbol_suffix(df_sgx["symbol"])
 
     # Only needed for the top-70-by-mcap cap
     # latest_date = (
@@ -98,6 +112,7 @@ def fetch_short_data(supabase, today):
     # )
     # df_sgx_daily = pd.DataFrame(df_sgx_daily.data)
     # df_sgx_daily = df_sgx_daily.dropna()
+    # df_sgx_daily["symbol"] = add_symbol_suffix(df_sgx_daily["symbol"])
 
     data["security"] = data["security"].str.lower()
 
@@ -124,8 +139,10 @@ def delete_old_data(supabase,today):
     # Delete more than 2 year data from DB and add to flat file
     sgx_short_df = pd.DataFrame(supabase.table("sgx_short_sell").select("*").lt("date",today - timedelta(365*2)).execute().data)
     if sgx_short_df.shape[0] > 0:
+        sgx_short_df["symbol"] = add_symbol_suffix(sgx_short_df["symbol"])
         try:
             curr_short_df = pd.read_csv("historical_sgx_short_sell_data.csv")
+            curr_short_df["symbol"] = add_symbol_suffix(curr_short_df["symbol"])
             df_flat_file = pd.concat([curr_short_df,sgx_short_df])
         except:
             df_flat_file = sgx_short_df
@@ -139,6 +156,7 @@ def insert_data_to_db(df_fuzzy,supabase, today):
     
     df_fuzzy = df_fuzzy.replace({np.nan: None})
     df_fuzzy["date"] = df_fuzzy["date"].astype('str')
+    df_fuzzy["symbol"] = add_symbol_suffix(df_fuzzy["symbol"])
     
     # Insert New Data
     for row in range(0,df_fuzzy.shape[0]):
