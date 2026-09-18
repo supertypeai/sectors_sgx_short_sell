@@ -1,0 +1,29 @@
+description: SGX short sell | fetch today's report, insert into sgx_short_sell, commit the log and archive
+
+container:
+  image: ghcr.io/astral-sh/uv:python3.11-bookworm
+  working_dir: /workspace
+  env:
+    - PYTHONUNBUFFERED: "1"
+
+secrets:
+  - SUPABASE_URL
+  - SUPABASE_KEY
+
+# 21:00 WIB, weekdays. SGX publishes the report at 18:15 SGT.
+schedule: "0 14 * * 1-5"
+timeout_sec: 1800
+hist_retention_days: 30
+
+steps:
+  - id: checkout
+    run: runners clone
+
+  - id: fetch
+    depends: [checkout]
+    run: uv run --no-project --with-requirements requirements.txt python sgx_short_sell.py today
+
+  # scraper.log is gitignored (*.log), hence -f.
+  - id: publish
+    depends: [fetch]
+    run: runners push -f -m "updated logs" scraper.log historical_sgx_short_sell_data.csv
