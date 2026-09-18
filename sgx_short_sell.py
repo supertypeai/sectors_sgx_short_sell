@@ -11,7 +11,7 @@ from imp import reload
 logging.basicConfig(level=logging.ERROR)
 import argparse
 import sys
-from function_thefuzz import preprocess_names, match_names, vote_names, save_names, insert_names_to_df
+from function_thefuzz import resolve_symbols
 
 load_dotenv()
 
@@ -41,6 +41,9 @@ def extract_txt(text_data):
     for line in lines[3:]:
         if line.strip() == '':
             continue
+        # Footer separator: everything after it (TOTAL / currency totals) is not data
+        if set(line.strip()) == {'='}:
+            break
         # Split the line based on whitespace
         columns = re.split(r'\s{2,}', line.strip())
         if len(columns) == len(header):
@@ -90,7 +93,7 @@ def fetch_short_data(supabase, today):
     data.columns = ['security','volume','currency','value','date']
 
     # Get Symbol for each Company
-    df_sgx = supabase.table("sgx_companies").select("symbol","name").execute()
+    df_sgx = supabase.table("sgx_companies").select("symbol","name","short_name","currency","is_active").execute()
     df_sgx = pd.DataFrame(df_sgx.data)
     df_sgx["symbol"] = add_symbol_suffix(df_sgx["symbol"])
 
@@ -120,20 +123,15 @@ def fetch_short_data(supabase, today):
     data["security"] = data["security"].str.replace('$', '').str.strip()
     data['symbol'] = None # Make new column to be inserted
     data = data[["security",'date','volume','value']].rename(columns={"security":"name"})
-    companies_dict_list = df_sgx[['symbol','name']].to_dict(orient="records")
+    companies_dict_list = df_sgx[['symbol','name','short_name','currency','is_active']].to_dict(orient="records")
 
-    unique_value_short_sell = data['name'].unique()
-    cleaned_unique_value_short_sell = preprocess_names(unique_value_short_sell)
-    list_of_dictionaries = match_names(cleaned_unique_value_short_sell, unique_value_short_sell, companies_dict_list)
-    final_data, still_null_data = vote_names(list_of_dictionaries)
-    # save_names(final_data, still_null_data) # Only if needed
-    df_final = insert_names_to_df(final_data, data)
+    df_final, _, unmatched_names, ambiguous_names = resolve_symbols(data, companies_dict_list)
 
     # df_top_sgx = df_sgx_daily.sort_values("market_cap", ascending=False).head(70)
     # df_csv = df_final[~df_final.symbol.isin(df_top_sgx.symbol.unique())]
     # df_final = df_final[df_final.symbol.isin(df_top_sgx.symbol.unique())]
     # return df_final, df_csv
-    return df_final
+    return df_final, {"unmatched": unmatched_names, "ambiguous": ambiguous_names}
 
 def delete_old_data(supabase,today):
     # Delete more than 2 year data from DB and add to flat file
@@ -157,20 +155,24 @@ def insert_data_to_db(df_fuzzy,supabase, today):
     df_fuzzy = df_fuzzy.replace({np.nan: None})
     df_fuzzy["date"] = df_fuzzy["date"].astype('str')
     df_fuzzy["symbol"] = add_symbol_suffix(df_fuzzy["symbol"])
-    
-    # Insert New Data
-    for row in range(0,df_fuzzy.shape[0]):
-        try:
-            supabase.table("sgx_short_sell").insert(dict(df_fuzzy.iloc[row])).execute()
 
-        except:
-            logging.error(f"Failed to update description for row {row} in date {today}.")
+    # Insert New Data (single batched call: one round-trip, atomic)
+    records = df_fuzzy.to_dict(orient="records")
+    try:
+        supabase.table("sgx_short_sell").insert(records).execute()
+    except Exception as e:
+        logging.error(f"Insert failed for {len(records)} rows on {today}: {e}")
+        sys.exit(1)
 
 def main():
     parser = argparse.ArgumentParser(description="Update short sell date to be fetched")
     parser.add_argument('date', type=str, help='Specify the date of shortsell format "YYYYMMDD", if today specify "today"')
+    parser.add_argument('--dry-run', action='store_true', help='Resolve and report only; never write to the database')
 
     args = parser.parse_args()
+
+    if not args.dry_run:
+        initiate_logging('scraper.log')
     
     if args.date == "today":
         # Fetch Daily Short Sell Data
@@ -181,9 +183,17 @@ def main():
     supabase = create_client(os.getenv("SUPABASE_URL"),os.getenv("SUPABASE_KEY"))
     
     # df_final,df_csv = fetch_short_data(supabase,today)
-    df_final = fetch_short_data(supabase,today)
+    df_final, diagnostics = fetch_short_data(supabase,today)
 
     print(df_final)
+    print(f"[SUMMARY] mapped rows: {df_final.shape[0]}; "
+          f"unmatched names: {len(diagnostics['unmatched'])} {diagnostics['unmatched']}; "
+          f"ambiguous names: {len(diagnostics['ambiguous'])} {diagnostics['ambiguous']}")
+
+    if args.dry_run:
+        print("[DRY-RUN] no database writes performed")
+        return
+
     delete_old_data(supabase,today)
     insert_data_to_db(df_final, supabase, today)
 
@@ -195,9 +205,6 @@ def initiate_logging(LOG_FILENAME):
     logging.info('Program started')
 
 if __name__ == "__main__":
-    LOG_FILENAME = 'scraper.log'
-    initiate_logging(LOG_FILENAME)
-
     main()
 
     logging.info(f"Finish scrape sgx short sell data")

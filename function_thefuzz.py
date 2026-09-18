@@ -1,6 +1,7 @@
 import pandas as pd
 from supabase import create_client
 import os
+import re
 import json
 from dotenv import load_dotenv
 from thefuzz import fuzz
@@ -286,6 +287,199 @@ def insert_names_to_df(final_data: dict, df_short_sell: pd.DataFrame) -> pd.Data
   print("[PROGRESS] Inserting to Dataframe process is done...")
   return df_short_sell_filled
 
+# Legal/REIT/currency words trimmed before comparing names.
+# Longest first so "realestateinvestmenttrust" goes before "trust".
+_CANONICAL_SUFFIXES = tuple(sorted({
+  "realestateinvestmenttrust", "realestatetrust", "reit", "trust", "holdings",
+  "holding", "limited", "corporation", "company", "group", "ltd", "plc",
+  "pcl", "inc", "grp", "tr", "sgd", "usd", "eur", "gbp", "hkd", "cny",
+  "jpy", "myr", "aud", "bhd", "berhad",
+}, key=len, reverse=True))
+
+# Tokens the SGX report abbreviates, expanded before canonicalising so
+# "intl cement" and "International Cement Group" land on the same key.
+_ABBREVIATIONS = {
+  "intl": "international",
+  "gbl": "global",
+  "grp": "group",
+  "hldg": "holding",
+  "hldgs": "holdings",
+  "envres": "environmentalresources",
+}
+
+# Standalone currency/country tokens are noise: the same trust appears as
+# "Keppel Pacific Oak US REIT" (company) and "KepPacOakReitUSD" (report), so
+# "us" must go too or those two keys never meet. Verified against the live
+# company list: only Manulife/Prime/Keppel-Pacific-Oak hold the affected keys.
+_CURRENCY_TOKENS = re.compile(r'\b(?:usd|sgd|eur|gbp|hkd|cny|jpy|myr|aud|us|hk)\b')
+# ...and the report also glues the currency onto the name with no separator.
+_GLUED_CURRENCY = re.compile(r'(?:usd|sgd|eur|gbp|hkd|cny|jpy|myr|aud)$')
+# A stripped key shorter than this is more likely to collide than to match.
+_MIN_CANONICAL_LEN = 4
+
+def canonical_name(value: str) -> str:
+  """Collapse a security name to a comparable key: lowercase, expand common
+  abbreviations, alphanumerics only, drop a leading article, then strip trailing
+  legal/REIT/currency words (repeat until stable)."""
+  if value is None or not isinstance(value, str):
+    return ""
+  lowered = value.lower()
+  for abbr, full in _ABBREVIATIONS.items():
+    lowered = re.sub(rf'\b{abbr}\b', full, lowered)
+  lowered = _CURRENCY_TOKENS.sub(' ', lowered)
+  cleaned = re.sub(r'[^a-z0-9]', '', lowered)
+  if cleaned.startswith("the") and len(cleaned) > 3:
+    cleaned = cleaned[3:]
+  stripped = _GLUED_CURRENCY.sub('', cleaned)
+  if len(stripped) >= _MIN_CANONICAL_LEN:
+    cleaned = stripped
+  changed = True
+  while changed:
+    changed = False
+    for suffix in _CANONICAL_SUFFIXES:
+      if cleaned.endswith(suffix) and len(cleaned) > len(suffix):
+        cleaned = cleaned[: -len(suffix)]
+        changed = True
+  return cleaned
+
+# Yahoo sometimes omits shortName for a company that shares its legal name with
+# another listing (Z74/Z77 both "Singapore Telecommunications Ltd"). These
+# explicit fallbacks restore the exchange short name and feed both match passes.
+SHORT_NAME_FALLBACKS = {
+  "Z74.SI": "Singtel",
+}
+
+_CURRENCIES = {"SGD", "USD", "EUR", "GBP", "HKD", "CNY", "JPY", "MYR", "AUD"}
+
+def _report_currency(name: str) -> str | None:
+  """Trailing currency token of a report name ("hph trust usd" -> USD)."""
+  tokens = re.findall(r'[a-z]+', str(name).lower())
+  return tokens[-1].upper() if tokens and tokens[-1].upper() in _CURRENCIES else None
+
+def _alias_score(name: str, aliases: list) -> int:
+  """Same four-metric vote score used by match_names, best across aliases."""
+  best = 0
+  for alias in aliases:
+    if not alias:
+      continue
+    left, right = name.upper(), alias.upper()
+    best = max(best, fuzz.partial_ratio(left, right) + fuzz.token_sort_ratio(left, right)
+               + fuzz.token_set_ratio(left, right) + fuzz.partial_token_sort_ratio(left, right))
+  return best
+
+def resolve_symbols(df_short_sell: pd.DataFrame, companies_dict_list: list) -> tuple:
+  """Map report names to symbols.
+
+  Returns ``(df_matched, final_data, unmatched_names, ambiguous_names)``.
+  Resolution order, each step only seeing what the previous left over:
+
+  1. exact canonical hit on ``short_name`` or legal ``name`` (unique -> taken);
+  2. currency token in the report name vs ``sgx_companies.currency``;
+  3. ``is_active`` when exactly one candidate is active;
+  4. fuzzy vote over legal names only (``short_name`` is often truncated, e.g.
+     ``'ES'``, and substring-matches the wrong company);
+  5. elimination, when a sibling symbol is already claimed in this batch.
+
+  Unmatched and ambiguous names are returned rather than guessed.
+  """
+  canonical_map = {}
+  for company in companies_dict_list:
+    for alias in (company.get("short_name"), company.get("name"),
+                  SHORT_NAME_FALLBACKS.get(company["symbol"])):
+      key = canonical_name(alias)
+      if key:
+        canonical_map.setdefault(key, set()).add(company["symbol"])
+
+  # Fuzzy candidates use the legal name (+ fallbacks) only, never short_name:
+  # truncated short_names like "ES" or "Global Inv" substring-match and out-score
+  # the right answer ("china envres"->ES, "g invacom"->Global Inv). Exact
+  # canonical matching above still uses short_name, where it is unambiguous.
+  alias_dict_list = []
+  for c in companies_dict_list:
+    for alias in (c["name"], SHORT_NAME_FALLBACKS.get(c["symbol"])):
+      if alias:
+        alias_dict_list.append({"symbol": c["symbol"], "name": alias})
+
+  unmatched_empty = []
+
+  final_data = {}
+  ambiguous = {}
+  remaining = []
+  unique_names = list(df_short_sell['name'].unique())
+  cleaned_map = dict(zip(unique_names, preprocess_names(unique_names)))
+  for name in unique_names:
+    # Try the raw report text first, then the preprocessed form: the
+    # special_cases table rewrites exchange shorthand ("keppacoakreitusd",
+    # "g invacom") into something the company names can be compared against.
+    raw_key = canonical_name(name)
+    pre_key = canonical_name(cleaned_map[name])
+    symbols = canonical_map.get(raw_key) if raw_key else None
+    if not symbols and pre_key:
+      symbols = canonical_map.get(pre_key)
+    if not symbols:
+      # A name with no alphanumerics (blank/''/'$') would fuzzy-match everything
+      # at 100 and land on an arbitrary company - report it, never guess.
+      if not raw_key and not pre_key:
+        unmatched_empty.append(name)
+      else:
+        remaining.append(name)
+    elif len(symbols) == 1:
+      final_data[name] = {"symbol": next(iter(symbols)), "name": name, "value": 100}
+    else:
+      ambiguous[name] = symbols
+
+  cleaned_remaining = [cleaned_map[n] for n in remaining]
+  fuzzy_final, unmatched = vote_names(
+    match_names(cleaned_remaining, remaining, alias_dict_list)
+  )
+  final_data.update(fuzzy_final)
+  unmatched = unmatched_empty + unmatched
+
+  # Same canonical key spread over several symbols (dual listings/renames):
+  # prefer the currency the report states, then let fuzzy pick, but only when
+  # it wins outright.
+  unresolved_ambiguous = {}
+  for name, symbols in ambiguous.items():
+    candidates = [c for c in companies_dict_list if c["symbol"] in symbols]
+    report_currency = _report_currency(name)
+    if report_currency:
+      currency_match = [c for c in candidates
+                        if (c.get("currency") or "").upper() == report_currency]
+      if currency_match:
+        candidates = currency_match
+    active = [c for c in candidates if c.get("is_active")]
+    if len(active) == 1:
+      candidates = active
+    scored = sorted(
+      ((_alias_score(name, [c["name"], SHORT_NAME_FALLBACKS.get(c["symbol"])]), c["symbol"])
+       for c in candidates),
+      reverse=True,
+    )
+    if len(scored) == 1 or (scored and scored[0][0] > scored[1][0]):
+      final_data[name] = {"symbol": scored[0][1], "name": name, "value": scored[0][0]}
+    else:
+      unresolved_ambiguous[name] = symbols
+
+  # Ambiguity by elimination: if every other candidate is already taken by a
+  # different name in this batch, the leftover one is right (Keppel -> BN4 once
+  # "Keppel Reit" has claimed K71U).
+  assigned = {entry["symbol"] for entry in final_data.values()}
+  still_ambiguous = {}
+  for name, symbols in unresolved_ambiguous.items():
+    leftover = symbols - assigned
+    if len(leftover) == 1:
+      symbol = next(iter(leftover))
+      final_data[name] = {"symbol": symbol, "name": name}
+      assigned.add(symbol)
+    else:
+      still_ambiguous[name] = symbols
+  unresolved_ambiguous = still_ambiguous
+
+  df_filled = insert_names_to_df(final_data, df_short_sell)
+  print(f"[PROGRESS] Resolved {len(final_data)} names, {len(unmatched)} unmatched, "
+        f"{len(unresolved_ambiguous)} ambiguous")
+  return df_filled, final_data, unmatched, unresolved_ambiguous
+
 
 # Only run to test the code
 # if __name__ == "__main__":
@@ -349,3 +543,40 @@ def insert_names_to_df(final_data: dict, df_short_sell: pd.DataFrame) -> pd.Data
 #     raise Exception(f"Error upserting to database: {e}")
 
 
+
+if __name__ == "__main__":
+  # Self-check: no DB needed. Pins the cases that regressed during development.
+  for alias, report in [
+    ("UOB", "uob"), ("OCBC Bank", "ocbc bank"), ("Golden Agri-Res", "golden agri-res"),
+    ("YZJ Shipbldg", "yzj shipbldg sgd"), ("Seatrium", "seatrium ltd"),
+    ("Suntec Real Estate Investment Trust", "suntec reit"), ("DBS", "dbs"),
+    ("International Cement Group Ltd", "intl cement"),
+  ]:
+    assert canonical_name(alias) == canonical_name(report), (alias, report)
+
+  companies = [
+    {"symbol": "U11.SI", "name": "United Overseas Bank Ltd", "short_name": "UOB"},
+    {"symbol": "U10.SI", "name": "UOB-Kay Hian Holdings Ltd", "short_name": None},
+    {"symbol": "BN4.SI", "name": "Keppel Ltd", "short_name": "Keppel"},
+    {"symbol": "K71U.SI", "name": "Keppel REIT", "short_name": "Keppel"},
+    # truncated short_name: must NOT win the fuzzy pass over the legal name
+    {"symbol": "QS9.SI", "name": "Global Invacom Group Ltd", "short_name": "G Inva"},
+    {"symbol": "B73.SI", "name": "Global Investments Ltd", "short_name": "Global Inv"},
+    {"symbol": "5RC.SI", "name": "ES Group (Holdings) Ltd", "short_name": "ES"},
+    {"symbol": "UIX.SI", "name": "China Environmental Resources Group Ltd", "short_name": None},
+    {"symbol": "CMOU.SI", "name": "Keppel Pacific Oak US REIT", "short_name": "Korereit"},
+    {"symbol": "KUO.SI", "name": "International Cement Group Ltd", "short_name": None},
+    {"symbol": "NIO.SI", "name": "NIO Inc", "short_name": None},
+  ]
+  cases = {
+    "uob": "U11.SI", "uob kay hian": "U10.SI",
+    "keppel": "BN4.SI", "keppel reit": "K71U.SI",
+    "g invacom^": "QS9.SI", "g invacom": "QS9.SI",
+    "china envres": "UIX.SI", "keppacoakreitusd": "CMOU.SI",
+    "nio inc. usd ov": "NIO.SI", "intl cement": "KUO.SI",
+  }
+  df = pd.DataFrame({"name": list(cases), "symbol": [None] * len(cases)})
+  filled, _, _, _ = resolve_symbols(df, companies)
+  got = dict(zip(filled["name"], filled["symbol"]))
+  assert got == cases, {k: (got.get(k), v) for k, v in cases.items() if got.get(k) != v}
+  print("[SELF-CHECK] resolve_symbols ok")
